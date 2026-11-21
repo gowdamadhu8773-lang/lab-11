@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuthShield — User Validation Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    },
+                    animation: {
+                        'aurora-slow': 'auroraDrift 18s ease-in-out infinite alternate',
+                        'aurora-reverse': 'auroraDriftReverse 22s ease-in-out infinite alternate',
+                        'pulse-glow': 'pulseGlow 8s ease-in-out infinite',
+                        'float-particle': 'floatParticle 14s linear infinite',
+                    },
+                    keyframes: {
+                        auroraDrift: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1) rotate(0deg)' },
+                            '50%': { transform: 'translate(45px, -35px) scale(1.12) rotate(6deg)' },
+                            '100%': { transform: 'translate(-30px, 25px) scale(0.95) rotate(-4deg)' },
+                        },
+                        auroraDriftReverse: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1.05)' },
+                            '50%': { transform: 'translate(-50px, 30px) scale(0.92)' },
+                            '100%': { transform: 'translate(35px, -25px) scale(1.1)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.45', transform: 'scale(1)' },
+                            '50%': { opacity: '0.75', transform: 'scale(1.08)' },
+                        },
+                        floatParticle: {
+                            '0%': { transform: 'translateY(0px) translateX(0px)', opacity: '0' },
+                            '20%': { opacity: '0.7' },
+                            '80%': { opacity: '0.5' },
+                            '100%': { transform: 'translateY(-120px) translateX(25px)', opacity: '0' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#050816] text-slate-100 font-sans min-h-screen flex flex-col relative overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+    <!-- COSMIC AURORA & DOT-GRID BACKGROUND LAYER -->
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none select-none bg-[radial-gradient(ellipse_at_top,#0f172a_0%,#050816_65%,#02040a_100%)]">
+        <!-- Subtle Geometric Dot-Grid Texture -->
+        <div class="absolute inset-0 bg-[radial-gradient(rgba(148,163,184,0.16)_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_80%_75%_at_50%_40%,#000_55%,transparent_100%)]"></div>
+
+        <!-- Ambient Aurora Orbs -->
+        <div class="absolute -top-32 -left-24 w-[32rem] h-[32rem] rounded-full bg-violet-600/25 blur-[130px] animate-aurora-slow"></div>
+        <div class="absolute top-1/4 -right-28 w-[34rem] h-[34rem] rounded-full bg-cyan-500/20 blur-[140px] animate-aurora-reverse"></div>
+        <div class="absolute -bottom-36 left-1/4 w-[30rem] h-[30rem] rounded-full bg-emerald-500/20 blur-[130px] animate-aurora-slow"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[38rem] h-[24rem] rounded-full bg-indigo-600/20 blur-[150px] animate-pulse-glow"></div>
+
+        <!-- Delicate Floating Light Particles -->
+        <span class="absolute top-[75%] left-[14%] w-1.5 h-1.5 rounded-full bg-cyan-300/70 shadow-[0_0_8px_rgba(103,232,249,0.8)] animate-float-particle"></span>
+        <span class="absolute top-[82%] left-[36%] w-1 h-1 rounded-full bg-violet-300/70 shadow-[0_0_8px_rgba(196,181,253,0.8)] animate-float-particle [animation-delay:3s]"></span>
+        <span class="absolute top-[68%] left-[62%] w-1.5 h-1.5 rounded-full bg-emerald-300/70 shadow-[0_0_8px_rgba(110,231,183,0.8)] animate-float-particle [animation-delay:6s]"></span>
+        <span class="absolute top-[85%] left-[82%] w-1 h-1 rounded-full bg-indigo-300/80 shadow-[0_0_8px_rgba(165,180,252,0.8)] animate-float-particle [animation-delay:9s]"></span>
+        <span class="absolute top-[55%] left-[24%] w-1 h-1 rounded-full bg-sky-300/60 shadow-[0_0_6px_rgba(125,211,252,0.8)] animate-float-particle [animation-delay:4.5s]"></span>
+    </div>
+
+    <!-- Top Navigation Bar (Frosted Glass) -->
+    <header class="bg-slate-950/55 backdrop-blur-xl border-b border-white/10 sticky top-0 z-30 shadow-[0_4px_30px_rgba(0,0,0,0.35)]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 ring-1 ring-white/25">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-white tracking-tight leading-tight">AuthShield</h1>
+                    <p class="text-xs text-slate-400 font-medium">Server Validation Sandbox</p>
+                </div>
+            </div>
+
+            <!-- Interactive Toggle for Database Inspector -->
+            <div class="flex items-center gap-3">
+                <span id="server-status-badge" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-300 border border-emerald-400/25 shadow-[0_0_15px_rgba(16,185,129,0.12)]">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Server Online
+                </span>
+
+                <button id="toggle-db-btn" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-white/[0.08] hover:bg-white/[0.14] text-white border border-white/15 backdrop-blur-md active:scale-[0.98] transition-all shadow-lg shadow-black/25">
+                    <i data-lucide="database" class="w-4 h-4 text-cyan-400"></i>
+                    <span>Database Inspector</span>
+                    <span id="db-count-badge" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">3</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col lg:flex-row gap-8 items-start justify-center relative z-10">
+
+        <!-- LEFT / CENTER: Authentication & Dashboard View -->
+        <section id="primary-viewport" class="w-full max-w-md mx-auto lg:mx-0 transition-all duration-300">
+
+            <!-- VIEW 1: LOGIN FORM CARD (Frosted Glassmorphism) -->
+            <div id="login-view" class="bg-slate-900/55 backdrop-blur-2xl rounded-2xl shadow-[0_24px_60px_-15px_rgba(0,0,0,0.75),0_0_40px_-10px_rgba(99,102,241,0.22)] border border-white/15 overflow-hidden relative">
+                <!-- Top Luminous Hairline Accent -->
+                <div class="h-[1px] w-full bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent"></div>
+
+                <div class="p-6 sm:p-8">
+                    <div class="text-center mb-8">
+                        <div class="inline-flex items-center justify-center w-13 h-13 p-3 rounded-2xl bg-indigo-500/15 text-indigo-300 border border-indigo-400/25 shadow-[0_0_25px_rgba(99,102,241,0.25)] mb-4">
+                            <i data-lucide="lock" class="w-6 h-6"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white tracking-tight">Sign In to Portal</h2>
+                        <p class="text-sm text-slate-400 mt-1.5">Enter your credentials to validate against the server database.</p>
+                    </div>
+
+                    <!-- Server Error / Failure Message Box -->
+                    <div id="login-error-box" class="hidden mb-6 p-4 rounded-xl bg-rose-500/15 border border-rose-400/30 backdrop-blur-md flex items-start gap-3 transition-all shadow-[0_0_20px_rgba(244,63,94,0.15)]">
+                        <i data-lucide="alert-circle" class="w-5 h-5 text-rose-400 shrink-0 mt-0.5"></i>
+                        <div class="text-sm">
+                            <h3 class="font-semibold text-rose-200">Authentication Failed</h3>
+                            <p id="login-error-text" class="text-rose-300/90 mt-0.5">Invalid username or password. Please verify your credentials and try again.</p>
+                        </div>
+                    </div>
+
+                    <!-- Login Form -->
+                    <form id="login-form" class="space-y-5" novalidate>
+                        <!-- Username Input -->
+                        <div>
+                            <label for="username" class="block text-sm font-medium text-slate-300 mb-1.5">Login Name / Username</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <i data-lucide="user" class="w-4 h-4"></i>
+                                </div>
+                                <input type="text" id="username" name="username" required autocomplete="username"
+                                    placeholder="e.g., admin"
+                                    class="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-white/15 rounded-xl text-sm text-white placeholder-slate-500 focus:bg-slate-950/85 focus:outline-none focus:ring-2 focus:ring-cyan-400/60 focus:border-cyan-400/60 transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Password Input -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label for="password" class="block text-sm font-medium text-slate-300">Password</label>
+                                <button type="button" id="quick-fill-btn" class="text-xs font-medium text-cyan-400 hover:text-cyan-300 hover:underline transition-colors">
+                                    Auto-fill demo user
+                                </button>
+                            </div>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <i data-lucide="key-round" class="w-4 h-4"></i>
+                                </div>
+                                <input type="password" id="password" name="password" required autocomplete="current-password"
+                                    placeholder="••••••••"
+                                    class="w-full pl-10 pr-11 py-2.5 bg-slate-950/60 border border-white/15 rounded-xl text-sm text-white placeholder-slate-500 focus:bg-slate-950/85 focus:outline-none focus:ring-2 focus:ring-cyan-400/60 focus:border-cyan-400/60 transition-all">
+                                <button type="button" id="toggle-password-visibility" aria-label="Toggle password visibility"
+                                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition-colors">
+                                    <i data-lucide="eye" id="eye-icon" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button with Loading State -->
+                        <button type="submit" id="login-submit-btn"
+                            class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-600 hover:from-indigo-500 hover:via-violet-500 hover:to-cyan-500 text-white font-semibold text-sm shadow-[0_10px_25px_-5px_rgba(99,102,241,0.5)] ring-1 ring-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-cyan-400 active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+                            <span id="submit-btn-text">Validate & Sign In</span>
+                            <i data-lucide="arrow-right" id="submit-btn-icon" class="w-4 h-4"></i>
+                            <!-- Loading Spinner (Hidden by default) -->
+                            <svg id="submit-btn-spinner" class="hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Simulated Server Terminal Footer -->
+                <div class="bg-slate-950/75 px-6 py-4 border-t border-white/10">
+                    <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+                        <span class="font-mono flex items-center gap-1.5">
+                            <i data-lucide="terminal" class="w-3.5 h-3.5 text-cyan-400"></i>
+                            Server Request Log
+                        </span>
+                        <span id="latency-indicator" class="font-mono text-slate-500">IDLE</span>
+                    </div>
+                    <p id="server-log-output" class="font-mono text-xs text-emerald-400 truncate">
+                        > Ready for POST /api/v1/auth/login...
+                    </p>
+                </div>
+            </div>
+
+            <!-- VIEW 2: SUCCESSFUL LOGIN DASHBOARD (Frosted Glassmorphism) -->
+            <div id="dashboard-view" class="hidden bg-slate-900/60 backdrop-blur-2xl rounded-2xl shadow-[0_24px_60px_-15px_rgba(0,0,0,0.75),0_0_40px_-10px_rgba(16,185,129,0.25)] border border-white/15 overflow-hidden">
+                <!-- Success Top Banner -->
+                <div class="bg-gradient-to-r from-emerald-600/85 via-teal-600/85 to-cyan-600/85 backdrop-blur-md px-6 py-6 text-white border-b border-white/15">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/30">
+                            <i data-lucide="check-circle-2" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-emerald-100">200 OK — Authenticated</span>
+                            <h2 class="text-xl font-bold leading-tight">Welcome back, <span id="dash-fullname">User</span>!</h2>
+                        </div>
+                    </div>
+                    <p class="text-sm text-emerald-50/90 mt-2">
+                        Your credentials matched a verified record in the server database.
+                    </p>
+                </div>
+
+                <!-- User Session Details -->
+                <div class="p-6 sm:p-8 space-y-6">
+                    <div class="bg-slate-950/55 rounded-xl p-4 border border-white/10 space-y-3">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Session Metadata</h3>
+                        
+                        <div class="flex justify-between items-center py-1.5 border-b border-white/10 text-sm">
+                            <span class="text-slate-400 flex items-center gap-2">
+                                <i data-lucide="at-sign" class="w-4 h-4 text-cyan-400"></i>
+                                Login Username
+                            </span>
+                            <span id="dash-username" class="font-mono font-medium text-white bg-white/10 px-2.5 py-0.5 rounded-md border border-white/15">admin</span>
+                        </div>
+
+                        <div class="flex justify-between items-center py-1.5 border-b border-white/10 text-sm">
+                            <span class="text-slate-400 flex items-center gap-2">
+                                <i data-lucide="shield" class="w-4 h-4 text-violet-400"></i>
+                                Assigned Role
+                            </span>
+                            <span id="dash-role" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-200 border border-indigo-400/30">Administrator</span>
+                        </div>
+
+                        <div class="flex justify-between items-center py-1.5 border-b border-white/10 text-sm">
+                            <span class="text-slate-400 flex items-center gap-2">
+                                <i data-lucide="clock" class="w-4 h-4 text-emerald-400"></i>
+                                Login Timestamp
+                            </span>
+                            <span id="dash-timestamp" class="font-mono text-xs text-slate-300">--</span>
+                        </div>
+
+                        <div class="flex justify-between items-center pt-1 text-sm">
+                            <span class="text-slate-400 flex items-center gap-2">
+                                <i data-lucide="key" class="w-4 h-4 text-amber-400"></i>
+                                Session Token
+                            </span>
+                            <span id="dash-token" class="font-mono text-xs text-slate-400 truncate max-w-[160px]">tok_89f7a89d7f</span>
+                        </div>
+                    </div>
+
+                    <!-- Logout Button -->
+                    <button id="logout-btn" type="button"
+                        class="w-full py-3 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-sm border border-white/15 shadow-lg active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="log-out" class="w-4 h-4 text-rose-400"></i>
+                        <span>Terminate Session & Sign Out</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: INTERACTIVE DATABASE INSPECTOR (Frosted Glassmorphism) -->
+        <aside id="db-inspector-panel" class="w-full lg:w-[540px] bg-slate-900/55 backdrop-blur-2xl rounded-2xl shadow-[0_24px_60px_-15px_rgba(0,0,0,0.75),0_0_40px_-10px_rgba(6,182,212,0.18)] border border-white/15 overflow-hidden transition-all duration-300 relative">
+            <!-- Top Luminous Hairline Accent -->
+            <div class="h-[1px] w-full bg-gradient-to-r from-transparent via-violet-400/70 to-transparent"></div>
+
+            <!-- Panel Header -->
+            <div class="bg-slate-950/65 px-6 py-4 flex items-center justify-between text-white border-b border-white/10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-400/25 flex items-center justify-center">
+                        <i data-lucide="server" class="w-4 h-4 text-cyan-400"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-sm text-white">Mock Server Database (`users_table`)</h3>
+                        <p class="text-xs text-slate-400">Inspect stored records or register new accounts</p>
+                    </div>
+                </div>
+                <button id="close-db-btn" type="button" aria-label="Close Database Inspector" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-6">
+                <!-- Add New User Form -->
+                <div class="bg-slate-950/50 p-4 rounded-xl border border-white/10">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3 flex items-center gap-1.5">
+                        <i data-lucide="user-plus" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        Insert New Record into Database
+                    </h4>
+                    <form id="add-user-form" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="sr-only" for="new-username">Username</label>
+                            <input type="text" id="new-username" required placeholder="Username (e.g., dev_ops)"
+                                class="w-full px-3 py-2 bg-slate-900/80 border border-white/15 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/60">
+                        </div>
+                        <div>
+                            <label class="sr-only" for="new-password">Password</label>
+                            <input type="text" id="new-password" required placeholder="Password (e.g., secret99)"
+                                class="w-full px-3 py-2 bg-slate-900/80 border border-white/15 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/60">
+                        </div>
+                        <div>
+                            <label class="sr-only" for="new-fullname">Full Name</label>
+                            <input type="text" id="new-fullname" required placeholder="Full Name (e.g., Sarah Connor)"
+                                class="w-full px-3 py-2 bg-slate-900/80 border border-white/15 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/60">
+                        </div>
+                        <div class="flex gap-2">
+                            <select id="new-role" class="w-full px-3 py-2 bg-slate-900/80 border border-white/15 rounded-lg text-xs text-white focus:outline-none focus:ring-2 focus:ring-cyan-400/60">
+                                <option value="Standard User" class="bg-slate-900">Standard User</option>
+                                <option value="Administrator" class="bg-slate-900">Administrator</option>
+                                <option value="Moderator" class="bg-slate-900">Moderator</option>
+                            </select>
+                            <button type="submit" class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-xs font-semibold rounded-lg shrink-0 shadow-md shadow-indigo-500/25 transition-all">
+                                Add
+                            </button>
+                        </div>
+                    </form>
+                    <p id="db-feedback-msg" class="hidden text-xs mt-2 font-medium"></p>
+                </div>
+
+                <!-- Database Table -->
+                <div>
+                    <div class="flex items-center justify-between mb-2.5">
+                        <span class="text-xs font-semibold text-slate-400">Stored Credentials (Click row to test login)</span>
+                        <button id="reset-db-btn" type="button" class="text-xs text-slate-400 hover:text-rose-400 flex items-center gap-1 transition-colors">
+                            <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                            Reset Defaults
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto border border-white/10 rounded-xl bg-slate-950/45">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-white/[0.04] border-b border-white/10 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                                    <th class="py-2.5 px-3">Username</th>
+                                    <th class="py-2.5 px-3">Password</th>
+                                    <th class="py-2.5 px-3">Role</th>
+                                    <th class="py-2.5 px-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="db-records-body" class="divide-y divide-white/10 text-xs">
+                                <!-- Populated dynamically via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- Application Logic -->
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        /**
+         * 1. MOCK DATABASE LAYER
+         * Pre-populated with default user accounts.
+         */
+        const DEFAULT_USERS = [
+            { id: 1, username: 'admin', password: 'admin123', fullName: 'System Administrator', role: 'Administrator' },
+            { id: 2, username: 'john_doe', password: 'pass123', fullName: 'John Doe', role: 'Standard User' },
+            { id: 3, username: 'alice', password: 'wonderland', fullName: 'Alice Kingsleigh', role: 'Moderator' }
+        ];
+
+        // Load users from sessionStorage if available so user additions persist during session, otherwise use defaults
+        let mockDatabase = JSON.parse(sessionStorage.getItem('authshield_db')) || [...DEFAULT_USERS];
+
+        function saveDatabase() {
+            sessionStorage.setItem('authshield_db', JSON.stringify(mockDatabase));
+            updateDbCountBadge();
+        }
+
+        /**
+         * 2. SIMULATED BACKEND SERVER AUTHENTICATION
+         * Mimics an asynchronous network request (POST /api/v1/auth/login) with realistic latency.
+         */
+        function authenticateWithServer(username, password) {
+            return new Promise((resolve, reject) => {
+                const simulatedLatency = Math.floor(Math.random() * 450) + 450; // 450ms - 900ms latency
+
+                setTimeout(() => {
+                    try {
+                        // Trim username for clean lookup, keep password exact
+                        const cleanUsername = username.trim();
+
+                        if (!cleanUsername || !password) {
+                            reject({
+                                status: 400,
+                                message: 'Both login name and password are required by the server.',
+                                latency: simulatedLatency
+                            });
+                            return;
+                        }
+
+                        // Query mock database for matching record (case-sensitive check)
+                        const matchedUser = mockDatabase.find(
+                            (record) => record.username === cleanUsername && record.password === password
+                        );
+
+                        if (matchedUser) {
+                            resolve({
+                                status: 200,
+                                user: {
+                                    username: matchedUser.username,
+                                    fullName: matchedUser.fullName,
+                                    role: matchedUser.role
+                                },
+                                token: 'tok_' + Math.random().toString(36).substring(2, 12) + Date.now().toString(36),
+                                timestamp: new Date().toLocaleString(),
+                                latency: simulatedLatency
+                            });
+                        } else {
+                            reject({
+                                status: 401,
+                                message: 'Invalid credentials. Username and password did not match any record in the database.',
+                                latency: simulatedLatency
+                            });
+                        }
+                    } catch (err) {
+                        reject({
+                            status: 500,
+                            message: 'Internal Server Error during authentication check.',
+                            latency: simulatedLatency
+                        });
+                    }
+                }, simulatedLatency);
+            });
+        }
+
+        /**
+         * 3. DOM ELEMENT REFERENCES
+         */
+        const loginView = document.getElementById('login-view');
+        const dashboardView = document.getElementById('dashboard-view');
+        const loginForm = document.getElementById('login-form');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginErrorBox = document.getElementById('login-error-box');
+        const loginErrorText = document.getElementById('login-error-text');
+
+        // Submit Button Elements
+        const submitBtn = document.getElementById('login-submit-btn');
+        const submitBtnText = document.getElementById('submit-btn-text');
+        const submitBtnIcon = document.getElementById('submit-btn-icon');
+        const submitBtnSpinner = document.getElementById('submit-btn-spinner');
+
+        // Server Log Footer Elements
+        const serverLogOutput = document.getElementById('server-log-output');
+        const latencyIndicator = document.getElementById('latency-indicator');
+
+        // Dashboard Elements
+        const dashFullname = document.getElementById('dash-fullname');
+        const dashUsername = document.getElementById('dash-username');
+        const dashRole = document.getElementById('dash-role');
+        const dashTimestamp = document.getElementById('dash-timestamp');
+        const dashToken = document.getElementById('dash-token');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        // Database Inspector Elements
+        const dbInspectorPanel = document.getElementById('db-inspector-panel');
+        const toggleDbBtn = document.getElementById('toggle-db-btn');
+        const closeDbBtn = document.getElementById('close-db-btn');
+        const dbCountBadge = document.getElementById('db-count-badge');
+        const dbRecordsBody = document.getElementById('db-records-body');
+        const addUserForm = document.getElementById('add-user-form');
+        const dbFeedbackMsg = document.getElementById('db-feedback-msg');
+        const resetDbBtn = document.getElementById('reset-db-btn');
+
+        /**
+         * 4. UI STATE HELPERS
+         */
+        function setLoadingState(isLoading) {
+            submitBtn.disabled = isLoading;
+            usernameInput.disabled = isLoading;
+            passwordInput.disabled = isLoading;
+
+            if (isLoading) {
+                submitBtn.classList.add('opacity-80', 'cursor-not-allowed');
+                submitBtnText.textContent = 'Validating with Server...';
+                submitBtnIcon.classList.add('hidden');
+                submitBtnSpinner.classList.remove('hidden');
+                latencyIndicator.textContent = 'PENDING...';
+                latencyIndicator.className = 'font-mono text-amber-400';
+                serverLogOutput.textContent = `> POST /api/v1/auth/login { user: "${usernameInput.value.trim() || 'empty'}" }...`;
+                serverLogOutput.className = 'font-mono text-xs text-amber-300 truncate';
+            } else {
+                submitBtn.classList.remove('opacity-80', 'cursor-not-allowed');
+                submitBtnText.textContent = 'Validate & Sign In';
+                submitBtnIcon.classList.remove('hidden');
+                submitBtnSpinner.classList.add('hidden');
+            }
+        }
+
+        function showLoginError(message, status = 401, latency = 0) {
+            loginErrorText.textContent = message;
+            loginErrorBox.classList.remove('hidden');
+            
+            // Update terminal log
+            latencyIndicator.textContent = `${status} (${latency}ms)`;
+            latencyIndicator.className = 'font-mono text-rose-400';
+            serverLogOutput.textContent = `> [${status} UNAUTHORIZED] Validation rejected by server.`;
+            serverLogOutput.className = 'font-mono text-xs text-rose-400 truncate';
+        }
+
+        function hideLoginError() {
+            loginErrorBox.classList.add('hidden');
+        }
+
+        function showSuccessDashboard(authResponse) {
+            hideLoginError();
+
+            // Populate dashboard fields
+            dashFullname.textContent = authResponse.user.fullName;
+            dashUsername.textContent = authResponse.user.username;
+            dashRole.textContent = authResponse.user.role;
+            dashTimestamp.textContent = authResponse.timestamp;
+            dashToken.textContent = authResponse.token;
+
+            // Update terminal log before switching views
+            latencyIndicator.textContent = `200 OK (${authResponse.latency}ms)`;
+            latencyIndicator.className = 'font-mono text-emerald-400';
+            serverLogOutput.textContent = `> [200 OK] Session granted for "${authResponse.user.username}".`;
+            serverLogOutput.className = 'font-mono text-xs text-emerald-400 truncate';
+
+            // Transition Views
+            loginView.classList.add('hidden');
+            dashboardView.classList.remove('hidden');
+        }
+
+        function logoutUser() {
+            // Reset form & switch back to Login View
+            loginForm.reset();
+            hideLoginError();
+            dashboardView.classList.add('hidden');
+            loginView.classList.remove('hidden');
+
+            latencyIndicator.textContent = 'IDLE';
+            latencyIndicator.className = 'font-mono text-slate-500';
+            serverLogOutput.textContent = '> Session terminated. Ready for new login...';
+            serverLogOutput.className = 'font-mono text-xs text-emerald-400 truncate';
+        }
+
+        /**
+         * 5. EVENT HANDLERS (LOGIN, LOGOUT, PASSWORD VISIBILITY)
+         */
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideLoginError();
+
+            const enteredUsername = usernameInput.value;
+            const enteredPassword = passwordInput.value;
+
+            setLoadingState(true);
+
+            try {
+                const response = await authenticateWithServer(enteredUsername, enteredPassword);
+                setLoadingState(false);
+                showSuccessDashboard(response);
+            } catch (errorResponse) {
+                setLoadingState(false);
+                showLoginError(errorResponse.message, errorResponse.status, errorResponse.latency);
+            }
+        });
+
+        logoutBtn.addEventListener('click', logoutUser);
+
+        // Toggle password visibility
+        const togglePasswordBtn = document.getElementById('toggle-password-visibility');
+        togglePasswordBtn.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            togglePasswordBtn.innerHTML = isPassword
+                ? '<i data-lucide="eye-off" class="w-4 h-4"></i>'
+                : '<i data-lucide="eye" class="w-4 h-4"></i>';
+            lucide.createIcons();
+        });
+
+        // Quick-fill first record from database
+        document.getElementById('quick-fill-btn').addEventListener('click', () => {
+            if (mockDatabase.length > 0) {
+                usernameInput.value = mockDatabase[0].username;
+                passwordInput.value = mockDatabase[0].password;
+                hideLoginError();
+                // Ensure user is on login view
+                if (!loginView.classList.contains('hidden')) {
+                    usernameInput.focus();
+                }
+            }
+        });
+
+        /**
+         * 6. DATABASE INSPECTOR RENDERING & INTERACTIONS
+         */
+        function updateDbCountBadge() {
+            dbCountBadge.textContent = mockDatabase.length;
+        }
+
+        function showDbFeedback(msg, isError = false) {
+            dbFeedbackMsg.textContent = msg;
+            dbFeedbackMsg.className = `text-xs mt-2 font-medium ${isError ? 'text-rose-400' : 'text-emerald-400'}`;
+            dbFeedbackMsg.classList.remove('hidden');
+            setTimeout(() => {
+                dbFeedbackMsg.classList.add('hidden');
+            }, 3500);
+        }
+
+        function renderDatabaseTable() {
+            updateDbCountBadge();
+            dbRecordsBody.innerHTML = '';
+
+            if (mockDatabase.length === 0) {
+                dbRecordsBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="py-6 text-center text-slate-400">
+                            No user records in database. Add a user above to test authentication.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            mockDatabase.forEach((user) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-white/[0.06] transition-colors cursor-pointer group';
+                tr.title = 'Click to fill login form with these credentials';
+
+                tr.innerHTML = `
+                    <td class="py-2.5 px-3 font-mono font-medium text-white">${escapeHtml(user.username)}</td>
+                    <td class="py-2.5 px-3 font-mono text-slate-300">${escapeHtml(user.password)}</td>
+                    <td class="py-2.5 px-3">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-white/10 text-slate-200 border border-white/10">
+                            ${escapeHtml(user.role)}
+                        </span>
+                    </td>
+                    <td class="py-2.5 px-3 text-right space-x-1">
+                        <button type="button" data-action="fill" data-id="${user.id}" class="px-2.5 py-1 rounded bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 border border-cyan-400/25 font-medium text-[11px] transition-colors">
+                            Use
+                        </button>
+                        <button type="button" data-action="delete" data-id="${user.id}" aria-label="Delete user" class="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 transition-colors">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i>
+                        </button>
+                    </td>
+                `;
+
+                // Clicking anywhere on the row (except delete button) fills the login form
+// ... existing code ... -->
